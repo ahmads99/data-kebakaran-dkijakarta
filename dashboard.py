@@ -1,339 +1,211 @@
-# import pandas as pd
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# import streamlit as st
-
-# # Set style for seaborn plots
-# sns.set(style='dark')
-
-# # Helper functions for data processing
-# def create_monthly_fires_df(df):
-#     monthly_fires_df = df.resample(rule='M', on='tanggal').size().reset_index(name='total_fires')
-#     return monthly_fires_df
-
-# def create_fires_by_location_df(df):
-#     fires_by_location_df = df['kecamatan'].value_counts().reset_index()
-#     fires_by_location_df.columns = ['kecamatan', 'total_fires']
-#     return fires_by_location_df
-
-# def create_fires_by_cause_df(df):
-#     fires_by_cause_df = df['jenis_kejadian_bencana'].value_counts().reset_index()
-#     fires_by_cause_df.columns = ['jenis_kejadian_bencana', 'total_fires']
-#     return fires_by_cause_df
-
-# def create_fires_by_month_df(df):
-#     df['bulan'] = df['tanggal'].dt.month
-#     fires_by_month_df = df.groupby('bulan').size().reset_index(name='total_fires')
-#     return fires_by_month_df
-
-# # Load dataset
-# df = pd.read_csv("./dataset/ready_kebakaran-jakarta2018.csv")
-
-# # Convert columns to datetime
-# df['tanggal'] = pd.to_datetime(df['tanggal'])
-
-# # Sort values by date
-# df.sort_values(by="tanggal", inplace=True)
-# df.reset_index(drop=True, inplace=True)
-
-# # Streamlit sidebar for date range filter
-# min_date = df['tanggal'].min()
-# max_date = df['tanggal'].max()
-
-# with st.sidebar:
-#     st.image("./asset/damkar.png")  # Replace with your company's logo URL
-    
-#     start_date, end_date = st.date_input(
-#         label='Rentang Waktu', min_value=min_date,
-#         max_value=max_date,
-#         value=[min_date, max_date]
-#     )
-
-# # Filter data based on selected date range
-# filtered_df = df[(df['tanggal'] >= pd.to_datetime(start_date)) & 
-#                  (df['tanggal'] <= pd.to_datetime(end_date))]
-
-# # Prepare dataframes for visualization
-# monthly_fires_df = create_monthly_fires_df(filtered_df)
-# fires_by_location_df = create_fires_by_location_df(filtered_df)
-# fires_by_cause_df = create_fires_by_cause_df(filtered_df)
-# fires_by_month_df = create_fires_by_month_df(filtered_df)
-
-# # Dashboard content
-# st.header('Dashboard Kejadian Kebakaran DKI Jakarta :fire:')
-
-# # Plot kejadian kebakaran per bulan
-# st.subheader('Kejadian Kebakaran Per Bulan')
-
-# fig, ax = plt.subplots(figsize=(16, 8))
-# ax.plot(
-#     monthly_fires_df['tanggal'],
-#     monthly_fires_df['total_fires'],
-#     marker='o', 
-#     linewidth=2,
-#     color="#FF6F61"
-# )
-# ax.set_xlabel('Tanggal')
-# ax.set_ylabel('Jumlah Kebakaran')
-# ax.set_title('Jumlah Kebakaran per Bulan')
-# st.pyplot(fig)
-
-# # Plot lokasi kebakaran terbanyak
-# st.subheader("Lokasi Terbanyak Terjadi Kebakaran")
-
-# fig, ax = plt.subplots(figsize=(12, 10))
-# sns.barplot(x='total_fires', y='kecamatan', data=fires_by_location_df, palette='viridis', ax=ax)
-# ax.set_xlabel('Jumlah Kebakaran')
-# ax.set_title('Jumlah Kebakaran berdasarkan Lokasi')
-# st.pyplot(fig)
-
-# # Plot penyebab kebakaran
-# st.subheader("Jenis Kejadian Bencana")
-
-# fig, ax = plt.subplots(figsize=(12, 10))
-# sns.barplot(x='total_fires', y='jenis_kejadian_bencana', data=fires_by_cause_df, palette='magma', ax=ax)
-# ax.set_xlabel('Jumlah Kebakaran')
-# ax.set_title('Jumlah Kebakaran berdasarkan Penyebab')
-# st.pyplot(fig)
-
-# # Plot distribusi kebakaran per bulan
-# st.subheader("Distribusi Kebakaran per Bulan")
-
-# fig, ax = plt.subplots(figsize=(12, 8))
-# sns.barplot(x='bulan', y='total_fires', data=fires_by_month_df, palette='coolwarm', ax=ax)
-# ax.set_xlabel('Bulan')
-# ax.set_ylabel('Jumlah Kebakaran')
-# ax.set_title('Distribusi Kebakaran per Bulan')
-# ax.set_xticks(range(0, 12))
-# ax.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
-# st.pyplot(fig)
-
-# # Footer
-# st.caption('Copyright © 2024 Benzodiahmad')
-
+# app.py
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import streamlit as st
-
-# Set style for seaborn plots
-sns.set(style='darkgrid')
-
-# Helper functions for data processing
-def create_monthly_disasters_df(df):
-    df.set_index('tanggal', inplace=True)
-    monthly_disasters_df = df.resample('M').size().reset_index(name='total_disasters')
-    return monthly_disasters_df
-
-def create_disasters_by_location_df(df, top_n=15):
-    disasters_by_location_df = df['kecamatan'].value_counts().reset_index()
-    disasters_by_location_df.columns = ['kecamatan', 'total_disasters']
-    top_disasters_by_location_df = disasters_by_location_df.head(top_n)
-    return top_disasters_by_location_df
-
-def create_disasters_by_type_df(df):
-    disasters_by_type_df = df['jenis_kejadian_bencana'].value_counts().reset_index()
-    disasters_by_type_df.columns = ['jenis_kejadian_bencana', 'total_disasters']
-    return disasters_by_type_df
-
-def create_disasters_by_period_df(df):
-    df['periode'] = pd.to_datetime(df['periode_data']).dt.to_period('M')
-    disasters_by_period_df = df.groupby('periode').size().reset_index(name='total_disasters')
-    return disasters_by_period_df
-
-def calculate_aggregated_metrics(df):
-    metrics_df = df.groupby(by="kelurahan").agg({
-        "kerugian_jumlah_kk": ["max", "min", "mean", "std"],
-        "taksiran_kerugian": ["max", "min", "mean", "std"]
-    })
-    return metrics_df
-
-def filter_by_month(df, month_year):
-    df['tanggal'] = df['tanggal'].astype(str)
-    return df[df['tanggal'].str.startswith(month_year)]
-
-def group_by_kecamatan(df):
-    grouped = df.groupby(by=['kecamatan']).size().reset_index(name='count')
-    return grouped
-
-def calculate_statistics(df):
-    rata_kerugian = df['kerugian_jumlah_kk'].mean()
-    rata_korban = df['taksiran_kerugian'].mean()
-    return rata_kerugian, rata_korban
-
-def calculate_correlation(df):
-    return df[['kerugian_jumlah_kk', 'taksiran_kerugian']].corr().iloc[0, 1]
+import datetime
 
 # Load dataset
-df = pd.read_csv("./dataset/readytouse-kebakaran-dkijakarta2018.csv")
+# @st.cache
+def load_data():
+    return pd.read_csv('readytouse_alldata.csv')
 
-bulan_terpilih = "Agustus 2024"  # Contoh bulan yang difilter
+df = load_data()
 
-# Convert columns to datetime
+# Sidebar
+st.sidebar.title('Dashboard Kebakaran DKI Jakarta')
+st.sidebar.header('Filter Data')
+
+# Convert 'tanggal' to datetime
 df['tanggal'] = pd.to_datetime(df['tanggal'])
-df['periode_data'] = pd.to_datetime(df['periode_data'])
 
-# Sort values by date
-df.sort_values(by="tanggal", inplace=True)
-df.reset_index(drop=True, inplace=True)
+# Get min and max dates for default date input values
+min_date = df['tanggal'].min().date()
+max_date = df['tanggal'].max().date()
 
-# Streamlit sidebar for date range filter
-min_date = df['tanggal'].min()
-max_date = df['tanggal'].max()
-
-with st.sidebar:
-    st.image("./asset/damkar.png")  # Replace with your company's logo URL
-    
-    start_date, end_date = st.date_input(
-        label='Rentang Waktu', min_value=min_date,
-        max_value=max_date,
-        value=[min_date, max_date]
-    )
+# Date filter
+start_date = st.sidebar.date_input('Tanggal Mulai', min_date)
+end_date = st.sidebar.date_input('Tanggal Selesai', max_date)
 
 # Filter data based on selected date range
-filtered_df = df[(df['tanggal'] >= pd.to_datetime(start_date)) & 
-                 (df['tanggal'] <= pd.to_datetime(end_date))]
+df_filtered = df[(df['tanggal'] >= pd.Timestamp(start_date)) & (df['tanggal'] <= pd.Timestamp(end_date))]
 
-# Prepare dataframes for visualization
-monthly_disasters_df = create_monthly_disasters_df(filtered_df)
-disasters_by_location_df = create_disasters_by_location_df(filtered_df)
-disasters_by_type_df = create_disasters_by_type_df(filtered_df)
-disasters_by_period_df = create_disasters_by_period_df(filtered_df)
-metrics_df = calculate_aggregated_metrics(filtered_df)
+# Visual options
+option = st.sidebar.selectbox('Pilih Visualisasi:', 
+                              ['Jenis Kejadian per Bulan',
+                                'Distribusi Jenis Kejadian Bencana', 
+                               'Kerugian Berdasarkan Wilayah', 
+                               'Tren Kerugian dari Bulan ke Bulan', 
+                               'Top 5 Bulan dengan Kerugian Terbanyak', 
+                               'Kerugian Berdasarkan Jenis Kejadian Bencana', 
+                               'Jumlah Kejadian Kebakaran per Bulan', 
+                               '10 Top Wilayah dengan Jumlah Kejadian Terbanyak', 
+                               'Kecamatan dengan Jumlah Kejadian Terbanyak'
+                               ])
 
-# Filter data for January 2018
-kebakaran_januari_2018 = filter_by_month(df, '2018-01')
+# Title
+st.title('Dashboard Kebakaran DKI Jakarta')
 
-# Mengelompokkan data berdasarkan 'bulan' dan 'kecamatan'
-grouped = group_by_kecamatan(kebakaran_januari_2018)
-most_common_kecamatan = grouped.loc[grouped['count'].idxmax()]
+# Function to create and display plots
+def display_plot(plot_func):
+    plt.figure(figsize=(12, 6))
+    plot_func()
+    plt.tight_layout()
+    st.pyplot(plt)
+    
+if option == 'Distribusi Jenis Kejadian Bencana':
+    st.subheader('Distribusi Jenis Kejadian Bencana')
 
-# Calculate statistics
-rata_kerugian, rata_korban = calculate_statistics(df)
-korelasi = calculate_correlation(df)
+    # Hitung kejadian setiap jenis bencana
+    jenis_bencana_counts = df_filtered['jenis_kejadian_bencana'].value_counts()
 
-# Format nilai sebagai mata uang Rupiah
-formatted_rata_kerugian = f"Rp {rata_kerugian:,.0f}"
-formatted_rata_korban = f"Rp {rata_korban:,.0f}"
+    # Tampilkan hasil sebagai tabel
+    st.write("Jenis-jenis kejadian bencana yang paling sering terjadi:")
+    st.dataframe(jenis_bencana_counts.reset_index().rename(columns={'index': 'Jenis Kejadian Bencana', 'jenis_kejadian_bencana': 'Jumlah Kejadian'}))
 
-# Dashboard content
-st.header('Dashboard Kejadian Bencana DKI Jakarta :fire:')
+    # Plot hasil
+    plt.figure(figsize=(12, 8))
+    sns.barplot(x=jenis_bencana_counts.index, y=jenis_bencana_counts.values, palette='viridis')
+    plt.title('Distribusi Jenis Kejadian Bencana')
+    plt.xlabel('Jenis Kejadian Bencana')
+    plt.ylabel('Jumlah Kejadian')
+    plt.xticks(rotation=90)
+    plt.grid(axis='y')
 
-# Plot kejadian bencana per bulan
-st.subheader('Kejadian Bencana Per Bulan')
+    st.pyplot(plt)
 
-fig, ax = plt.subplots(figsize=(16, 8))
-ax.plot(
-    monthly_disasters_df['tanggal'],
-    monthly_disasters_df['total_disasters'],
-    marker='o', 
-    linewidth=2,
-    color="#FF6F61"
-)
-ax.set_xlabel('Tanggal')
-ax.set_ylabel('Jumlah Kejadian Bencana')
-ax.set_title('Jumlah Kejadian Bencana per Bulan')
-st.pyplot(fig)
+elif option == 'Jenis Kejadian per Bulan':
+    st.subheader('Jenis Kejadian per Bulan')
 
-# Plot lokasi kejadian bencana terbanyak (15 teratas)
-st.subheader("Kecamatan Terbanyak Terjadi Kejadian Bencana")
+    # Extract month and year for grouping
+    df_filtered['bulan'] = df_filtered['tanggal'].dt.to_period('M').astype(str)
+    
+    # Group by month and jenis_kejadian_bencana and aggregate
+    kejadian_per_bulan = df_filtered.groupby(['bulan', 'jenis_kejadian_bencana']).size().reset_index(name='jumlah_kejadian')
 
-fig, ax = plt.subplots(figsize=(12, 10))
-top_disasters_by_location_df = create_disasters_by_location_df(filtered_df, top_n=15)
-sns.barplot(x='total_disasters', y='kecamatan', data=top_disasters_by_location_df, palette='viridis', ax=ax)
-ax.set_xlabel('Jumlah Kejadian Bencana')
-ax.set_title('Jumlah Kejadian Bencana berdasarkan Kecamatan (15 Terbanyak)')
-st.pyplot(fig)
+    # Find max and min values per jenis kejadian bencana
+    max_values = kejadian_per_bulan.groupby('jenis_kejadian_bencana')['jumlah_kejadian'].idxmax()
+    min_values = kejadian_per_bulan.groupby('jenis_kejadian_bencana')['jumlah_kejadian'].idxmin()
+    
+    # Highlight rows for max and min
+    max_rows = kejadian_per_bulan.loc[max_values]
+    min_rows = kejadian_per_bulan.loc[min_values]
 
-# Plot jenis kejadian bencana
-st.subheader("Jenis Kejadian Bencana")
+    def plot():
+        plt.figure(figsize=(14, 8))
+        sns.lineplot(data=kejadian_per_bulan, x='bulan', y='jumlah_kejadian', hue='jenis_kejadian_bencana', marker='o')
 
-fig, ax = plt.subplots(figsize=(12, 10))
-sns.barplot(x='total_disasters', y='jenis_kejadian_bencana', data=disasters_by_type_df, palette='magma', ax=ax)
-ax.set_xlabel('Jumlah Kejadian Bencana')
-ax.set_title('Jumlah Kejadian Bencana berdasarkan Jenis')
-st.pyplot(fig)
+        # Plot max and min points
+        plt.scatter(max_rows['bulan'], max_rows['jumlah_kejadian'], color='red', s=100, label='Max', edgecolor='black')
+        plt.scatter(min_rows['bulan'], min_rows['jumlah_kejadian'], color='blue', s=100, label='Min', edgecolor='black')
 
-# Plot distribusi kejadian bencana per periode
-st.subheader("Distribusi Kejadian Bencana per Periode")
+        plt.title('Jenis Kejadian per Bulan (Max dan Min)')
+        plt.xlabel('Bulan')
+        plt.ylabel('Jumlah Kejadian')
+        plt.xticks(rotation=90)
+        plt.legend()
+        plt.grid(True)
+    
+    display_plot(plot)
 
-fig, ax = plt.subplots(figsize=(12, 8))
-sns.barplot(x='periode', y='total_disasters', data=disasters_by_period_df, palette='coolwarm', ax=ax)
-ax.set_xlabel('Periode')
-ax.set_ylabel('Jumlah Kejadian Bencana')
-ax.set_title('Distribusi Kejadian Bencana per Periode')
-ax.set_xticks(range(len(disasters_by_period_df['periode'])))
-ax.set_xticklabels(disasters_by_period_df['periode'].astype(str), rotation=90)
-st.pyplot(fig)
+elif option == 'Kerugian Berdasarkan Wilayah':
+    st.subheader('Kerugian Berdasarkan Wilayah')
+    def plot():
+        sns.barplot(x='kerugian_jumlah_kk', y='wilayah', data=df_filtered, palette='magma')
+        plt.title('Kerugian Berdasarkan Wilayah')
+        plt.xlabel('Jumlah Kerugian')
+        plt.ylabel('Wilayah')
+    display_plot(plot)
 
-# Visualize metrics
-st.subheader("Visualisasi Metrik Kerugian")
-fig, ax = plt.subplots(2, 2, figsize=(20, 24))
+elif option == 'Tren Kerugian dari Bulan ke Bulan':
+    st.subheader('Tren Kerugian dari Bulan ke Bulan')
+    df_filtered['bulan'] = df_filtered['tanggal'].dt.to_period('M').astype(str)
+    kerugian_per_bulan = df_filtered.groupby('bulan')['kerugian_jumlah_kk'].sum().reset_index()
+    kerugian_per_bulan = kerugian_per_bulan.sort_values(by='kerugian_jumlah_kk', ascending=False)
+    def plot():
+        sns.lineplot(x='bulan', y='kerugian_jumlah_kk', data=kerugian_per_bulan, marker='o', color='blue')
+        plt.title('Tren Kerugian dari Bulan ke Bulan')
+        plt.xlabel('Bulan')
+        plt.ylabel('Jumlah Kerugian')
+        plt.xticks(rotation=45)
+        plt.grid(True)
+    display_plot(plot)
 
-# Maximum Kerugian per KK
-sns.barplot(x=metrics_df["kerugian_jumlah_kk"]["max"].sort_values(ascending=False).head().index, 
-            y=metrics_df["kerugian_jumlah_kk"]["max"].sort_values(ascending=False).head().values, ax=ax[0, 0])
-ax[0, 0].set_title('Kerugian Jumlah KK Maksimum')
-ax[0, 0].set_xlabel('Daerah')
-ax[0, 0].set_ylabel('Kerugian')
+elif option == 'Top 5 Bulan dengan Kerugian Terbanyak':
+    st.subheader('Top 5 Bulan dengan Kerugian Terbanyak')
+    df_filtered['bulan'] = df_filtered['tanggal'].dt.to_period('M').astype(str)
+    kerugian_per_bulan = df_filtered.groupby('bulan')['kerugian_jumlah_kk'].sum().reset_index()
+    kerugian_per_bulan = kerugian_per_bulan.sort_values(by='kerugian_jumlah_kk', ascending=False)
+    top_5_bulan = kerugian_per_bulan.head(5)
+    def plot():
+        sns.barplot(x='kerugian_jumlah_kk', y='bulan', data=top_5_bulan, palette='magma')
+        plt.title('Top 5 Bulan dengan Kerugian Terbanyak')
+        plt.xlabel('Jumlah Kerugian')
+        plt.ylabel('Bulan')
+    display_plot(plot)
 
-# Minimum Kerugian per KK
-sns.barplot(x=metrics_df[metrics_df["kerugian_jumlah_kk"]["min"] > 0]["kerugian_jumlah_kk"]["min"].sort_values().head().index, 
-            y=metrics_df[metrics_df["kerugian_jumlah_kk"]["min"] > 0]["kerugian_jumlah_kk"]["min"].sort_values().head().values, ax=ax[0, 1])
-ax[0, 1].set_title('Kerugian Jumlah KK Minimum')
-ax[0, 1].set_xlabel('Daerah')
-ax[0, 1].set_ylabel('Kerugian')
+elif option == 'Kerugian Berdasarkan Jenis Kejadian Bencana':
+    st.subheader('Kerugian Berdasarkan Jenis Kejadian Bencana')
+    def plot():
+        sns.barplot(x='kerugian_jumlah_kk', y='jenis_kejadian_bencana', data=df_filtered, palette='cividis')
+        plt.title('Kerugian Berdasarkan Jenis Kejadian Bencana')
+        plt.xlabel('Jumlah Kerugian')
+        plt.ylabel('Jenis Kejadian Bencana')
+    display_plot(plot)
 
-# Maximum Taksiran Kerugian
-sns.barplot(x=metrics_df["taksiran_kerugian"]["max"].sort_values(ascending=False).head().index, 
-            y=metrics_df["taksiran_kerugian"]["max"].sort_values(ascending=False).head().values, ax=ax[1, 0])
-ax[1, 0].set_title('Taksiran Kerugian Maksimum')
-ax[1, 0].set_xlabel('Daerah')
-ax[1, 0].set_ylabel('Taksiran Kerugian')
+elif option == 'Jumlah Kejadian Kebakaran per Bulan':
+    st.subheader('Jumlah Kejadian Kebakaran per Bulan')
+    df_filtered['bulan'] = df_filtered['tanggal'].dt.month_name()
+    def plot():
+        sns.countplot(x='bulan', data=df_filtered, palette='Set2')
+        plt.title('Jumlah Kejadian Kebakaran per Bulan')
+        plt.xlabel('Bulan')
+        plt.ylabel('Jumlah Kejadian')
+        plt.xticks(rotation=90)
+    display_plot(plot)
 
-# Minimum Taksiran Kerugian
-sns.barplot(x=metrics_df[metrics_df["taksiran_kerugian"]["min"] > 0]["taksiran_kerugian"]["min"].sort_values().head().index, 
-            y=metrics_df[metrics_df["taksiran_kerugian"]["min"] > 0]["taksiran_kerugian"]["min"].sort_values().head().values, ax=ax[1, 1])
-ax[1, 1].set_title('Taksiran Kerugian Minimum')
-ax[1, 1].set_xlabel('Daerah')
-ax[1, 1].set_ylabel('Taksiran Kerugian')
+elif option == '10 Top Wilayah dengan Jumlah Kejadian Terbanyak':
+    st.subheader('10 Top Wilayah dengan Jumlah Kejadian Terbanyak')
+    top_10_wilayah = df_filtered['wilayah'].value_counts().head(10).reset_index()
+    top_10_wilayah.columns = ['Wilayah', 'Jumlah Kejadian']
+    def plot():
+        sns.barplot(x='Jumlah Kejadian', y='Wilayah', data=top_10_wilayah, palette='viridis')
+        plt.title('10 Top Wilayah dengan Jumlah Kejadian Terbanyak')
+        plt.xlabel('Jumlah Kejadian')
+        plt.ylabel('Wilayah')
+    display_plot(plot)
 
-st.pyplot(fig)
+elif option == 'Kecamatan dengan Jumlah Kejadian Terbanyak':
+    st.subheader('Kecamatan dengan Jumlah Kejadian Terbanyak')
+    kecamatan_counts = df_filtered['kecamatan'].value_counts().reset_index()
+    kecamatan_counts.columns = ['Kecamatan', 'Jumlah Kejadian']
+    def plot():
+        plt.figure(figsize=(20, 12))
+        sns.barplot(x='Jumlah Kejadian', y='Kecamatan', data=kecamatan_counts, palette='magma', width=0.6)
+        plt.title('Kecamatan dengan Jumlah Kejadian Terbanyak')
+        plt.xlabel('Jumlah Kejadian')
+        plt.ylabel('Kecamatan')
+    display_plot(plot)
 
-# Filter data for selected month
-st.subheader(f"Frekuensi Kejadian Bencana di {bulan_terpilih}")
+# Menambahkan teks hak cipta di footer
+footer = """
+<style>
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    color: #555;
+}
+</style>
+<footer>
+    <p>&copy; 2024 Benzodiahmads. All rights reserved.</p>
+</footer>
+"""
 
-# Display the most common Kecamatan
-st.write("Kecamatan dengan kejadian bencana terbanyak adalah:")
-st.write(most_common_kecamatan)
-
-# Plot jumlah kejadian kebakaran per wilayah
-st.subheader("Jumlah Kejadian Kebakaran per Wilayah")
-
-fig, ax = plt.subplots(figsize=(12, 8))
-kejadian_per_wilayah = df['wilayah'].value_counts()
-sns.barplot(x=kejadian_per_wilayah.index, y=kejadian_per_wilayah.values, palette='viridis', ax=ax)
-ax.set_xticklabels(kejadian_per_wilayah.index, rotation=90)
-ax.set_xlabel('Wilayah')
-ax.set_ylabel('Jumlah Kejadian')
-ax.set_title('Jumlah Kejadian Kebakaran per Wilayah')
-st.pyplot(fig)
-
-# Display average loss and victims
-st.subheader("Rata-Rata Kerugian dan Jumlah Korban")
-st.write(f"Rata-rata Taksiran Kerugian: {formatted_rata_korban}")
-st.write(f"Rata-rata Jumlah Korban per-KK: {formatted_rata_kerugian}")
-
-# Plot scatter plot of loss vs. victims
-st.subheader("Korelasi antara Kerugian dan Jumlah Korban")
-
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.scatterplot(x='kerugian_jumlah_kk', y='taksiran_kerugian', data=df, alpha=0.6, ax=ax)
-ax.set_xlabel('Kerugian')
-ax.set_ylabel('Jumlah Korban')
-ax.set_title('Scatter Plot antara Kerugian dan Jumlah Korban')
-st.pyplot(fig)
-
-# Display correlation
-st.write(f"Koefisien Korelasi antara Kerugian dan Jumlah Korban: {korelasi:.2f}")
-
+# Render footer
+st.markdown(footer, unsafe_allow_html=True)
